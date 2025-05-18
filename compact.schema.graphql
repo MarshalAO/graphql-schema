@@ -1,0 +1,150 @@
+directive @cacheControl(
+  inheritMaxAge: Boolean
+  maxAge: Int
+  scope: CacheControlScope
+) on FIELD_DEFINITION | OBJECT | INTERFACE | UNION
+
+directive @oneOf on INPUT_OBJECT
+
+enum CacheControlScope {
+  PUBLIC
+  PRIVATE
+}
+
+enum SortOrder {
+  HEIGHT_ASC
+  HEIGHT_DESC
+  INGESTED_AT_DESC
+  INGESTED_AT_ASC
+}
+
+enum TagOperator {
+  EQ
+  NEQ
+}
+
+enum TagMatch {
+  EXACT
+  FUZZY_AND
+  FUZZY_OR
+  WILDCARD
+}
+
+input RangeFilter {
+  max: Int
+  min: Int
+}
+
+input TagFilter {
+  match: TagMatch! = EXACT
+  name: String
+  op: TagOperator! = EQ
+  values: [String!]
+}
+
+type Amount {
+  ar: String!
+  winston: String!
+}
+
+type Block {
+  height: Int!
+  id: ID
+  previous: ID
+  timestamp: Int
+}
+
+type BlockConnection {
+  edges: [BlockEdge!]!
+  pageInfo: PageInfo!
+}
+
+type BlockEdge {
+  cursor: String!
+  node: Block!
+}
+
+type Bundle {
+  id: ID!
+}
+
+type MetaData {
+  size: String!
+  type: String
+}
+
+type Owner {
+  address: String!
+  key: String!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+}
+
+type Parent {
+  id: ID!
+}
+
+type Tag {
+  name: String!
+  value: String!
+}
+
+type Transaction {
+  anchor: String!
+  block: Block
+  bundledIn: Bundle
+  data: MetaData!
+  fee: Amount!
+  id: ID!
+  ingested_at: Int
+  owner: Owner!
+  parent: Parent @deprecated(reason: "Use `bundledIn`")
+  quantity: Amount!
+  recipient: String!
+  signature: String!
+  tags: [Tag!]!
+}
+
+type TransactionConnection {
+  count: Int
+  edges: [TransactionEdge!]!
+  pageInfo: PageInfo!
+}
+
+type TransactionEdge {
+  cursor: String!
+  node: Transaction!
+}
+
+type Query {
+  block(
+    id: String
+  ): Block
+
+  blocks(
+    after: String
+    first: Int = 10
+    height: RangeFilter
+    ids: [ID!]
+    sort: SortOrder = HEIGHT_DESC
+  ): BlockConnection!
+
+  transaction(
+    id: ID!
+  ): Transaction
+
+  transactions(
+    after: String
+    block: RangeFilter
+    bundledIn: [ID!]
+    first: Int = 10
+    ids: [ID!]
+    ingested_at: RangeFilter
+    owners: [String!]
+    recipients: [String!]
+    sort: SortOrder = HEIGHT_DESC
+    tags: [TagFilter!]
+  ): TransactionConnection!
+}
