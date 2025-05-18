@@ -1,0 +1,124 @@
+enum SortOrder {
+  HEIGHT_ASC
+  HEIGHT_DESC
+}
+
+enum TagOperator {
+  EQ
+  NEQ
+}
+
+input BlockFilter {
+  max: Int
+  min: Int
+}
+
+input TagFilter {
+  name: String!
+  op: TagOperator = EQ
+  values: [String!]!
+}
+
+type Amount {
+  ar: String!
+  winston: String!
+}
+
+type Block {
+  height: Int!
+  id: ID!
+  previous: ID!
+  timestamp: Int!
+}
+
+type BlockConnection {
+  edges: [BlockEdge!]!
+  pageInfo: PageInfo!
+}
+
+type BlockEdge {
+  cursor: String!
+  node: Block!
+}
+
+type Bundle {
+  id: ID!
+}
+
+type MetaData {
+  size: String!
+  type: String
+}
+
+type Owner {
+  address: String!
+  key: String!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+}
+
+type Parent {
+  id: ID!
+}
+
+type Tag {
+  name: String!
+  value: String!
+}
+
+type Transaction {
+  anchor: String!
+  block: Block
+  bundledIn: Bundle
+  data: MetaData!
+  fee: Amount!
+  id: ID!
+  owner: Owner!
+  parent: Parent @deprecated(reason: "Use `bundledIn`")
+  quantity: Amount!
+  recipient: String!
+  signature: String!
+  tags: [Tag!]!
+}
+
+type TransactionConnection {
+  edges: [TransactionEdge!]!
+  pageInfo: PageInfo!
+}
+
+type TransactionEdge {
+  cursor: String!
+  node: Transaction!
+}
+
+type Query {
+  block(
+    id: String
+  ): Block
+
+  blocks(
+    after: String
+    first: Int = 10
+    height: BlockFilter
+    ids: [ID!]
+    sort: SortOrder = HEIGHT_DESC
+  ): BlockConnection!
+
+  transaction(
+    id: ID!
+  ): Transaction
+
+  transactions(
+    after: String
+    block: BlockFilter
+    bundledIn: [ID!]
+    first: Int = 10
+    ids: [ID!]
+    owners: [String!]
+    recipients: [String!]
+    sort: SortOrder = HEIGHT_DESC
+    tags: [TagFilter!]
+  ): TransactionConnection!
+}
